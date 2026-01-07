@@ -31,42 +31,106 @@ export const FinancialProvider = ({ children }) => {
   }, [user]);
 
   const initializeMockData = () => {
+    const now = new Date();
+    const isoNow = now.toISOString();
+
     // Mock bank accounts
     setAccounts([
-      { id: 1, name: 'Business Checking', bank: 'Bank ABC', balance: 45000, type: 'checking' },
-      { id: 2, name: 'Savings Account', bank: 'Bank ABC', balance: 25000, type: 'savings' }
+      { id: 1, name: 'Business Checking', bank: 'Bank ABC', balance: 45000000, type: 'checking' },
+      { id: 2, name: 'Savings Account', bank: 'Bank ABC', balance: 25000000, type: 'savings' }
     ]);
 
     // Mock debit cards
     setDebitCards([
-      { id: 1, name: 'Business Debit', last4: '4532', balance: 45000, limit: 50000, bank: 'Bank ABC' }
+      { id: 1, name: 'Business Debit', last4: '4532', balance: 45000000, limit: 50000000, bank: 'Bank ABC' }
     ]);
 
     // Mock credit cards
     setCreditCards([
-      { id: 1, name: 'Business Credit', last4: '8765', balance: 8500, limit: 25000, dueDate: '2024-02-15', bank: 'Bank XYZ' }
+      { id: 1, name: 'Business Credit', last4: '8765', balance: 8500000, limit: 25000000, dueDate: isoNow, bank: 'Bank XYZ' }
     ]);
 
     // Mock cash balance
-    setCashBalance(5000);
+    setCashBalance(5000000);
 
     // Mock digital wallets
     setDigitalWallets([
-      { id: 1, name: 'PayPal Business', balance: 12000, type: 'paypal' },
-      { id: 2, name: 'Stripe Account', balance: 8500, type: 'stripe' }
+      { id: 1, name: 'PayPal Business', balance: 12000000, type: 'paypal' },
+      { id: 2, name: 'Stripe Account', balance: 8500000, type: 'stripe' }
     ]);
 
     // Mock budgets
     setBudgets([
-      { id: 1, category: 'Equipment', allocated: 10000, spent: 6500, period: 'monthly' },
-      { id: 2, category: 'Marketing', allocated: 5000, spent: 3200, period: 'monthly' },
-      { id: 3, category: 'Operations', allocated: 8000, spent: 5800, period: 'monthly' }
+      { id: 1, category: 'Equipment', allocated: 10000000, spent: 6500000, period: 'monthly' },
+      { id: 2, category: 'Marketing', allocated: 5000000, spent: 3200000, period: 'monthly' },
+      { id: 3, category: 'Operations', allocated: 8000000, spent: 5800000, period: 'monthly' }
     ]);
 
     // Mock financial goals
     setFinancialGoals([
-      { id: 1, name: 'New Camera Equipment', target: 15000, current: 8500, deadline: '2024-06-30' },
-      { id: 2, name: 'Emergency Fund', target: 50000, current: 25000, deadline: '2024-12-31' }
+      { id: 1, name: 'New Camera Equipment', target: 15000000, current: 8500000, deadline: isoNow },
+      { id: 2, name: 'Emergency Fund', target: 50000000, current: 25000000, deadline: isoNow }
+    ]);
+
+    // Mock revenue (used for summaries)
+    setRevenue([
+      { id: 1, source: 'Sarah & John Wedding - Final Payment', amount: 7500000, date: isoNow },
+      { id: 2, source: 'Emma & Michael Engagement - Deposit', amount: 2000000, date: isoNow }
+    ]);
+
+    // Mock expenses (used for summaries)
+    setExpenses([
+      { id: 1, category: 'Equipment', description: 'Camera maintenance', amount: 3500000, date: isoNow },
+      { id: 2, category: 'Marketing', description: 'Social media ads', amount: 1800000, date: isoNow },
+      { id: 3, category: 'Operations', description: 'Studio rent', amount: 3200000, date: isoNow }
+    ]);
+
+    // Mock transactions (used in dashboards & detail views)
+    setTransactions([
+      {
+        id: 1,
+        type: 'income',
+        description: 'Sarah & John Wedding - Final Payment',
+        amount: 7500000,
+        date: isoNow,
+        status: 'completed',
+        clientId: 1,
+        clientName: 'Sarah Johnson',
+        projectId: 1,
+      },
+      {
+        id: 2,
+        type: 'expense',
+        description: 'Camera maintenance',
+        amount: -500000,
+        date: isoNow,
+        status: 'completed',
+        category: 'Equipment',
+        clientId: 1,
+        projectId: 1,
+      },
+      {
+        id: 3,
+        type: 'income',
+        description: 'Emma & Michael Engagement - Deposit',
+        amount: 2000000,
+        date: isoNow,
+        status: 'pending',
+        clientId: 2,
+        clientName: 'Emma Wilson',
+        projectId: 2,
+      },
+      {
+        id: 4,
+        type: 'expense',
+        description: 'Studio rent',
+        amount: -1200000,
+        date: isoNow,
+        status: 'completed',
+        category: 'Operations',
+        clientId: 3,
+        projectId: 3,
+      }
     ]);
   };
 
@@ -172,6 +236,45 @@ export const FinancialProvider = ({ children }) => {
     return newRevenue;
   };
 
+  // Generic helper to add transaction tied to client/project
+  const addClientTransaction = ({
+    clientId,
+    projectId,
+    type, // 'income' | 'expense'
+    amount,
+    description,
+    status = 'completed',
+  }) => {
+    const numericAmount = Number(amount) || 0;
+    const now = new Date().toISOString();
+
+    if (!clientId || !numericAmount || !type) {
+      return null;
+    }
+
+    // Update revenue/expenses collections for summaries
+    if (type === 'income') {
+      addRevenue({ clientId, projectId, amount: numericAmount, description });
+    } else if (type === 'expense') {
+      addExpense({ clientId, projectId, amount: numericAmount, description });
+    }
+
+    // Push to main transactions list (positive for income, negative for expense)
+    const tx = {
+      id: Date.now(),
+      clientId,
+      projectId,
+      type,
+      description,
+      amount: type === 'income' ? numericAmount : -numericAmount,
+      date: now,
+      status,
+    };
+
+    setTransactions((prev) => [...prev, tx]);
+    return tx;
+  };
+
   // Budget management
   const addBudget = (budgetData) => {
     const newBudget = { id: Date.now(), ...budgetData, spent: 0 };
@@ -234,6 +337,15 @@ export const FinancialProvider = ({ children }) => {
     };
   };
 
+  // Helper: filter transactions by project or client (dipakai di financial views & project detail)
+  const getTransactionsByProject = (projectId) => {
+    return transactions.filter((tx) => tx.projectId === projectId);
+  };
+
+  const getTransactionsByClient = (clientId) => {
+    return transactions.filter((tx) => tx.clientId === clientId);
+  };
+
   const value = {
     // State
     accounts,
@@ -275,6 +387,7 @@ export const FinancialProvider = ({ children }) => {
 
     // Revenue functions
     addRevenue,
+    addClientTransaction,
 
     // Budget functions
     addBudget,
@@ -287,7 +400,9 @@ export const FinancialProvider = ({ children }) => {
     // Summary functions
     getTotalBalance,
     getTotalDebt,
-    getFinancialSummary
+    getFinancialSummary,
+    getTransactionsByProject,
+    getTransactionsByClient
   };
 
   return (

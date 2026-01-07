@@ -1,6 +1,8 @@
 import { Grid, Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import { useVendor } from '../../../context/VendorContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useFinancial } from '../../../context/FinancialContext';
+import { formatCurrency } from '../../../utils/formatters';
 import {
   IconCurrencyDollar,
   IconBriefcase,
@@ -16,7 +18,10 @@ import profileBg from '../../../assets/images/backgrounds/profilebg.jpg';
 const VendorDashboard = () => {
   const { vendorData, projects, analytics } = useVendor();
   const { user, getVendorCategory } = useAuth();
+  const { getFinancialSummary } = useFinancial();
   const vendorCategory = getVendorCategory();
+
+  const financialSummary = getFinancialSummary();
 
   // Calculate revenue change
   const revenueChange = analytics.previousMonthRevenue > 0 
@@ -131,6 +136,45 @@ const VendorDashboard = () => {
           </Grid>
         ))}
       </Grid>
+
+      {/* Financial Snapshot */}
+      {financialSummary && (
+        <Grid container spacing={3} mb={3}>
+          <Grid item xs={12} sm={6} lg={4}>
+            <StatCard
+              title="Total Balance"
+              value={formatCurrency(financialSummary.totalBalance)}
+              change=""
+              trend="up"
+              icon={IconCurrencyDollar}
+              color="success"
+              bgColor="success.light"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} lg={4}>
+            <StatCard
+              title="Net Worth"
+              value={formatCurrency(financialSummary.netWorth)}
+              change=""
+              trend="up"
+              icon={IconBriefcase}
+              color="primary"
+              bgColor="primary.light"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} lg={4}>
+            <StatCard
+              title="Monthly Profit"
+              value={formatCurrency(financialSummary.monthlyProfit)}
+              change={financialSummary.monthlyExpenses ? `Expenses ${formatCurrency(financialSummary.monthlyExpenses)}` : ''}
+              trend={financialSummary.monthlyProfit >= 0 ? 'up' : 'down'}
+              icon={IconStar}
+              color={financialSummary.monthlyProfit >= 0 ? 'info' : 'error'}
+              bgColor={financialSummary.monthlyProfit >= 0 ? 'info.light' : 'error.light'}
+            />
+          </Grid>
+        </Grid>
+      )}
 
       {/* Projects Overview */}
       <Grid container spacing={3}>

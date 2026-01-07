@@ -38,11 +38,13 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/AuthContext';
 import { useVendor } from '../../../context/VendorContext';
+import { useFinancial } from '../../../context/FinancialContext';
 import PageContainer from '../../../ui/container/PageContainer';
 
 const WeddingProjects = () => {
   const { user } = useAuth();
   const { projects } = useVendor();
+  const { getTransactionsByProject } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -145,6 +147,29 @@ const WeddingProjects = () => {
     setSelectedProject(null);
   };
 
+  const getProjectFinancialSummary = (projectId) => {
+    const txs = getTransactionsByProject(projectId);
+    if (!txs || txs.length === 0) {
+      return { income: 0, expense: 0, net: 0, outstanding: 0 };
+    }
+
+    const income = txs
+      .filter((t) => (t.amount || 0) > 0)
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const expense = txs
+      .filter((t) => (t.amount || 0) < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
+
+    const net = txs.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const outstanding = txs
+      .filter((t) => t.type === 'income' && t.status === 'pending')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    return { income, expense, net, outstanding };
+  };
+
   const filteredProjects = projectsData.filter(project => {
     const matchesSearch = project.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.clientName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -163,8 +188,14 @@ const WeddingProjects = () => {
     inProgress: projectsData.filter(p => p.status === 'in-progress').length,
     completed: projectsData.filter(p => p.status === 'completed').length,
     pending: projectsData.filter(p => p.status === 'planning' || p.status === 'pending').length,
-    totalRevenue: projectsData.reduce((sum, p) => sum + p.budget, 0),
-    paidAmount: projectsData.reduce((sum, p) => sum + p.paid, 0)
+    totalRevenue: projectsData.reduce((sum, p) => {
+      const f = getProjectFinancialSummary(p.id);
+      return sum + (f.net || p.budget || 0);
+    }, 0),
+    paidAmount: projectsData.reduce((sum, p) => {
+      const f = getProjectFinancialSummary(p.id);
+      return sum + (f.income || p.paid || 0);
+    }, 0)
   };
 
   return (
@@ -344,14 +375,26 @@ const WeddingProjects = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Box>
-                        <Typography variant="subtitle2">
-                          ${project.budget.toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Paid: ${project.paid.toLocaleString()}
-                        </Typography>
-                      </Box>
+                      {(() => {
+                        const f = getProjectFinancialSummary(project.id);
+                        const budget = project.budget;
+                        const paid = f.income || project.paid;
+                        return (
+                          <Box>
+                            <Typography variant="subtitle2">
+                              ${budget.toLocaleString()}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Paid: ${paid.toLocaleString()}
+                            </Typography>
+                            {f.outstanding > 0 && (
+                              <Typography variant="caption" color="warning.main">
+                                Outstanding: ${f.outstanding.toLocaleString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <Chip

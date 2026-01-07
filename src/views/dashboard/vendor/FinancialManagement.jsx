@@ -33,7 +33,7 @@ import {
   PieChart as PieChartIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/AuthContext';
-import { useVendor } from '../../../context/VendorContext';
+import { useFinancial } from '../../../context/FinancialContext';
 import PageContainer from '../../../ui/container/PageContainer';
 
 const FinancialManagement = () => {
@@ -41,70 +41,48 @@ const FinancialManagement = () => {
   const [tabValue, setTabValue] = useState(0);
   const [timeRange, setTimeRange] = useState('month');
 
-  const financialData = {
-    overview: {
-      totalRevenue: 125000000,
-      monthlyRevenue: 25000000,
-      pendingPayments: 12000000,
-      expenses: 8500000,
-      netProfit: 16500000,
-      profitMargin: 66
-    },
-    monthlyData: [
-      { month: 'Jan', revenue: 15000000, expenses: 6000000, profit: 9000000 },
-      { month: 'Feb', revenue: 25000000, expenses: 8500000, profit: 16500000 },
-      { month: 'Mar', revenue: 22000000, expenses: 9000000, profit: 13000000 },
-      { month: 'Apr', revenue: 16500000, expenses: 7500000, profit: 9000000 },
-      { month: 'May', revenue: 20000000, expenses: 8000000, profit: 12000000 },
-      { month: 'Jun', revenue: 19500000, expenses: 7800000, profit: 11700000 }
-    ],
-    recentTransactions: [
-      {
-        id: 1,
-        type: 'income',
-        description: 'Sarah & John Wedding - Pembayaran Akhir',
-        amount: 7500000,
-        date: '2024-02-15',
-        status: 'completed',
-        client: 'Sarah Johnson'
-      },
-      {
-        id: 2,
-        type: 'expense',
-        description: 'Perawatan Peralatan',
-        amount: -500000,
-        date: '2024-02-14',
-        status: 'completed',
-        category: 'Peralatan'
-      },
-      {
-        id: 3,
-        type: 'income',
-        description: 'Emma & Michael Engagement - DP',
-        amount: 2000000,
-        date: '2024-02-12',
-        status: 'pending',
-        client: 'Emma Wilson'
-      },
-      {
-        id: 4,
-        type: 'expense',
-        description: 'Sewa Studio',
-        amount: -1200000,
-        date: '2024-02-01',
-        status: 'completed',
-        category: 'Operasional'
-      }
-    ],
-    expenseCategories: [
-      { category: 'Peralatan', amount: 3500000, percentage: 41 },
-      { category: 'Marketing', amount: 1800000, percentage: 21 },
-      { category: 'Sewa Studio', amount: 1200000, percentage: 14 },
-      { category: 'Transportasi', amount: 800000, percentage: 9 },
-      { category: 'Asuransi', amount: 600000, percentage: 7 },
-      { category: 'Lainnya', amount: 600000, percentage: 7 }
-    ]
+  const {
+    budgets,
+    transactions,
+    revenue,
+    getFinancialSummary,
+  } = useFinancial();
+
+  const summary = getFinancialSummary();
+
+  const overview = {
+    totalRevenue: revenue.reduce((sum, item) => sum + (item.amount || 0), 0),
+    monthlyRevenue: summary.monthlyRevenue,
+    pendingPayments: transactions
+      .filter((tx) => tx.type === 'income' && tx.status === 'pending' && (tx.amount || 0) > 0)
+      .reduce((sum, tx) => sum + (tx.amount || 0), 0),
+    expenses: summary.monthlyExpenses,
+    netProfit: summary.monthlyProfit,
+    profitMargin: summary.monthlyRevenue
+      ? Math.round((summary.monthlyProfit / summary.monthlyRevenue) * 100)
+      : 0,
   };
+
+  const recentTransactions = [...transactions]
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .slice(0, 10);
+
+  const totalBudgetSpent = budgets.reduce((sum, b) => sum + (b.spent || 0), 0);
+
+  const expenseCategories = budgets.map((b) => ({
+    category: b.category,
+    amount: b.spent,
+    percentage: totalBudgetSpent ? Math.round(((b.spent || 0) / totalBudgetSpent) * 100) : 0,
+  }));
+
+  const monthlyData = [
+    { month: 'Jan', revenue: 15000000, expenses: 6000000, profit: 9000000 },
+    { month: 'Feb', revenue: 25000000, expenses: 8500000, profit: 16500000 },
+    { month: 'Mar', revenue: 22000000, expenses: 9000000, profit: 13000000 },
+    { month: 'Apr', revenue: 16500000, expenses: 7500000, profit: 9000000 },
+    { month: 'May', revenue: 20000000, expenses: 8000000, profit: 12000000 },
+    { month: 'Jun', revenue: 19500000, expenses: 7800000, profit: 11700000 }
+  ];
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);

@@ -1,4 +1,4 @@
-import { Grid, Box, Card, CardContent, Typography, LinearProgress, Chip } from '@mui/material';
+import { Grid, Box, Card, CardContent, Typography, LinearProgress, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { useFinancial } from '../../../context/FinancialContext';
 import {
   IconWallet,
@@ -21,6 +21,7 @@ const FinancialDashboard = () => {
     digitalWallets,
     budgets,
     financialGoals,
+    transactions,
     getFinancialSummary
   } = useFinancial();
 
@@ -338,6 +339,56 @@ const FinancialDashboard = () => {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Recent Transactions */}
+        {transactions && transactions.length > 0 && (
+          <Box mt={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="600" mb={2}>
+                  Recent Transactions
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Description</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {[...transactions]
+                        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                        .slice(0, 5)
+                        .map((tx) => {
+                          const amount = tx.amount ?? 0;
+                          const isPositive = amount >= 0;
+                          return (
+                            <TableRow key={tx.id}>
+                              <TableCell>
+                                {tx.date ? new Date(tx.date).toLocaleDateString() : '-'}
+                              </TableCell>
+                              <TableCell>{tx.description || 'Transaction'}</TableCell>
+                              <TableCell align="right">
+                                <Typography
+                                  variant="body2"
+                                  color={isPositive ? 'success.main' : 'error.main'}
+                                  fontWeight="600"
+                                >
+                                  {formatCurrency(Math.abs(amount))}
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Box>
+        )}
       </Box>
     </PageContainer>
   );

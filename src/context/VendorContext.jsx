@@ -68,6 +68,7 @@ export const VendorProvider = ({ children }) => {
         id: 1,
         name: 'Sarah & John Wedding Photography',
         client: 'Sarah Johnson',
+        clientId: 1,
         date: '2024-02-15',
         status: 'active',
         budget: 2500,
@@ -80,6 +81,7 @@ export const VendorProvider = ({ children }) => {
         id: 2,
         name: 'Maria Pre-wedding Session',
         client: 'Maria Garcia',
+        clientId: 2,
         date: '2024-03-20',
         status: 'planning',
         budget: 1200,
@@ -92,6 +94,7 @@ export const VendorProvider = ({ children }) => {
         id: 3,
         name: 'Lisa Engagement Photos',
         client: 'Lisa Chen',
+        clientId: 3,
         date: '2024-04-10',
         status: 'completed',
         budget: 800,
@@ -106,6 +109,7 @@ export const VendorProvider = ({ children }) => {
         id: 1,
         name: 'Sarah Bridal Makeup',
         client: 'Sarah Johnson',
+        clientId: 1,
         date: '2024-02-15',
         status: 'active',
         budget: 1500,
@@ -118,6 +122,7 @@ export const VendorProvider = ({ children }) => {
         id: 2,
         name: 'Maria Traditional Makeup',
         client: 'Maria Garcia',
+        clientId: 2,
         date: '2024-03-20',
         status: 'planning',
         budget: 1200,
@@ -130,6 +135,7 @@ export const VendorProvider = ({ children }) => {
         id: 3,
         name: 'Lisa Modern Glam Makeup',
         client: 'Lisa Chen',
+        clientId: 3,
         date: '2024-04-10',
         status: 'completed',
         budget: 1000,
@@ -144,6 +150,7 @@ export const VendorProvider = ({ children }) => {
         id: 1,
         name: 'Sarah Wedding Banquet',
         client: 'Sarah Johnson',
+        clientId: 1,
         date: '2024-02-15',
         status: 'active',
         budget: 8500,
@@ -156,6 +163,7 @@ export const VendorProvider = ({ children }) => {
         id: 2,
         name: 'Maria Buffet Service',
         client: 'Maria Garcia',
+        clientId: 2,
         date: '2024-03-20',
         status: 'planning',
         budget: 6000,
@@ -168,6 +176,7 @@ export const VendorProvider = ({ children }) => {
         id: 3,
         name: 'Lisa Intimate Dinner',
         client: 'Lisa Chen',
+        clientId: 3,
         date: '2024-04-10',
         status: 'completed',
         budget: 3500,
@@ -182,6 +191,7 @@ export const VendorProvider = ({ children }) => {
         id: 1,
         name: 'Sarah Garden Wedding Venue',
         client: 'Sarah Johnson',
+        clientId: 1,
         date: '2024-02-15',
         status: 'active',
         budget: 5000,
@@ -194,6 +204,7 @@ export const VendorProvider = ({ children }) => {
         id: 2,
         name: 'Maria Ballroom Venue',
         client: 'Maria Garcia',
+        clientId: 2,
         date: '2024-03-20',
         status: 'planning',
         budget: 7000,
@@ -206,6 +217,7 @@ export const VendorProvider = ({ children }) => {
         id: 3,
         name: 'Lisa Chapel Ceremony',
         client: 'Lisa Chen',
+        clientId: 3,
         date: '2024-04-10',
         status: 'completed',
         budget: 3000,
@@ -274,7 +286,23 @@ export const VendorProvider = ({ children }) => {
       // Simulate API call
       setTimeout(() => {
         setVendorData(mockVendorData[category] || {});
-        setProjects(mockProjectsByCategory[category] || []);
+
+        // Normalized projects model used across dashboard & project views
+        const rawProjects = mockProjectsByCategory[category] || [];
+        const normalizedProjects = rawProjects.map((project) => ({
+          ...project,
+          // Ensure unified fields exist while tetap kompatibel dengan struktur lama
+          weddingDate: project.weddingDate || project.date,
+          spent: typeof project.spent === 'number'
+            ? project.spent
+            : (project.budget && project.progress ? (project.budget * project.progress) / 100 : 0),
+          tasks: project.tasks ?? 0,
+          completedTasks: project.completedTasks ?? 0,
+          category: project.category || project.type || '',
+          notes: project.notes || ''
+        }));
+
+        setProjects(normalizedProjects);
         setAnalytics(mockAnalyticsByCategory[category] || {});
         setNotifications([
           { id: 1, type: 'info', message: 'New project assigned', time: '2 hours ago' },
@@ -296,21 +324,43 @@ export const VendorProvider = ({ children }) => {
     const newProject = {
       id: Date.now(),
       ...projectData,
-      status: 'planning',
-      progress: 0
+      status: projectData.status || 'planning',
+      progress: projectData.progress ?? 0,
+      spent: typeof projectData.spent === 'number'
+        ? projectData.spent
+        : (projectData.budget && projectData.progress ? (projectData.budget * projectData.progress) / 100 : 0),
+      tasks: projectData.tasks ?? 0,
+      completedTasks: projectData.completedTasks ?? 0,
+      category: projectData.category || projectData.type || '',
+      notes: projectData.notes || ''
     };
     setProjects(prev => [...prev, newProject]);
   };
 
   // Update project
   const updateProject = (projectId, updatedData) => {
-    setProjects(prev => 
-      prev.map(project => 
-        project.id === projectId 
-          ? { ...project, ...updatedData }
+    setProjects((prev) =>
+      prev.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              ...updatedData,
+              spent:
+                typeof updatedData.spent === 'number'
+                  ? updatedData.spent
+                  : project.spent,
+              category:
+                updatedData.category || updatedData.type || project.category,
+              notes: updatedData.notes ?? project.notes,
+            }
           : project
       )
     );
+  };
+
+  // Delete project
+  const deleteProject = (projectId) => {
+    setProjects(prev => prev.filter(project => project.id !== projectId));
   };
 
   // Get projects by status
@@ -336,6 +386,7 @@ export const VendorProvider = ({ children }) => {
     updateVendorProfile,
     addProject,
     updateProject,
+    deleteProject,
     getProjectsByStatus,
     getUpcomingProjects
   };

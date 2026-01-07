@@ -16,7 +16,18 @@ import {
   TextField,
   Stack,
   Tabs,
-  Tab
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   IconPlus,
@@ -30,59 +41,50 @@ import {
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
 import { formatDate, formatCurrency, getStatusColor } from '../../../utils/formatters';
+import { useVendor } from '../../../context/VendorContext';
+import { useFinancial } from '../../../context/FinancialContext';
 
 const ProjectManagement = () => {
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      name: 'Sarah & John Wedding',
-      client: 'Sarah Johnson',
-      weddingDate: '2024-06-15',
-      budget: 50000,
-      spent: 35000,
-      status: 'active',
-      progress: 70,
-      priority: 'high',
-      tasks: 12,
-      completedTasks: 8,
-      category: 'Full Service',
-      notes: 'Garden ceremony, 200 guests'
-    },
-    {
-      id: 2,
-      name: 'Maria & Carlos Wedding',
-      client: 'Maria Garcia',
-      weddingDate: '2024-08-20',
-      budget: 40000,
-      spent: 12000,
-      status: 'planning',
-      progress: 30,
-      priority: 'medium',
-      tasks: 15,
-      completedTasks: 4,
-      category: 'Photography',
-      notes: 'Beach wedding, traditional style'
-    },
-    {
-      id: 3,
-      name: 'Lisa & David Wedding',
-      client: 'Lisa Chen',
-      weddingDate: '2024-04-10',
-      budget: 30000,
-      spent: 28000,
-      status: 'completed',
-      progress: 100,
-      priority: 'low',
-      tasks: 10,
-      completedTasks: 10,
-      category: 'Makeup',
-      notes: 'Modern minimalist theme'
-    }
-  ]);
+  const { projects: vendorProjects, deleteProject } = useVendor();
+  const { getTransactionsByProject, addClientTransaction } = useFinancial();
+
+  const projects = (vendorProjects || []).map((project) => ({
+    id: project.id,
+    name: project.name,
+    client: project.client,
+    clientId: project.clientId,
+    weddingDate: project.weddingDate || project.date,
+    budget: project.budget,
+    spent:
+      typeof project.spent === 'number'
+        ? project.spent
+        : project.budget && project.progress
+        ? (project.budget * project.progress) / 100
+        : 0,
+    status: project.status,
+    progress: project.progress,
+    priority: project.priority,
+    tasks: project.tasks ?? 0,
+    completedTasks: project.completedTasks ?? 0,
+    category: project.category || project.type || '',
+    notes: project.notes || ''
+  }));
 
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+
+  const [financeFilter, setFinanceFilter] = useState('all'); // all | highValue | outstanding
+  const [sortBy, setSortBy] = useState('name'); // name | revenueDesc | outstandingDesc
+
+  const [txDialogOpen, setTxDialogOpen] = useState(false);
+  const [txProject, setTxProject] = useState(null);
+  const [txForm, setTxForm] = useState({
+    type: 'income',
+    amount: '',
+    description: '',
+    status: 'completed',
+  });
 
   const handleAddProject = () => {
     setSelectedProject(null);
@@ -96,8 +98,42 @@ const ProjectManagement = () => {
 
   const handleDeleteProject = (id) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      setProjects(prev => prev.filter(p => p.id !== id));
+      deleteProject(id);
     }
+  };
+
+  const openTxDialog = (project) => {
+    setTxProject(project);
+    setTxForm({ type: 'income', amount: '', description: '', status: 'completed' });
+    setTxDialogOpen(true);
+  };
+
+  const closeTxDialog = () => {
+    setTxDialogOpen(false);
+    setTxProject(null);
+  };
+
+  const handleTxFormChange = (field, value) => {
+    setTxForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveTransaction = () => {
+    if (!txProject) return;
+    const numericAmount = Number(txForm.amount);
+    if (!numericAmount || !txForm.type) return;
+
+    addClientTransaction({
+      clientId: txProject.clientId,
+      projectId: txProject.id,
+      type: txForm.type,
+      amount: numericAmount,
+      description:
+        txForm.description ||
+        `${txForm.type === 'income' ? 'Income' : 'Expense'} for ${txProject.name}`,
+      status: txForm.status || 'completed',
+    });
+
+    closeTxDialog();
   };
 
   const StatCard = ({ title, value, subtitle, icon: Icon, color }) => (
@@ -139,6 +175,29 @@ const ProjectManagement = () => {
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const completedProjects = projects.filter(p => p.status === 'completed').length;
   const totalRevenue = projects.reduce((sum, p) => sum + p.spent, 0);
+
+  const getProjectFinancialSummary = (projectId) => {
+    const txs = getTransactionsByProject(projectId);
+    if (!txs || txs.length === 0) {
+      return { income: 0, expense: 0, net: 0, outstanding: 0 };
+    }
+
+    const income = txs
+      .filter((t) => (t.amount || 0) > 0)
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const expense = txs
+      .filter((t) => (t.amount || 0) < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
+
+    const net = txs.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const outstanding = txs
+      .filter((t) => t.type === 'income' && t.status === 'pending')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    return { income, expense, net, outstanding };
+  };
 
   return (
     <PageContainer title="Project Management" description="Manage your wedding projects">
@@ -192,7 +251,7 @@ const ProjectManagement = () => {
               Add Project
             </Button>
           }
-        >
+>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
               <Tab label="All Projects" />
@@ -200,6 +259,11 @@ const ProjectManagement = () => {
               <Tab label="Planning" />
               <Tab label="Completed" />
             </Tabs>
+          </Box>
+
+          {/* Finance-based filters & sorting */}
+          <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
+            {/* TODO: add project-level finance filters/controls here if needed */}
           </Box>
 
           <Grid container spacing={3}>
@@ -210,6 +274,30 @@ const ProjectManagement = () => {
                 if (tabValue === 2) return project.status === 'planning';
                 if (tabValue === 3) return project.status === 'completed';
                 return true;
+              })
+              .filter((project) => {
+                const financial = getProjectFinancialSummary(project.id);
+                if (financeFilter === 'highValue') {
+                  return (financial.net || project.spent || 0) > 10000;
+                }
+                if (financeFilter === 'outstanding') {
+                  return financial.outstanding > 0;
+                }
+                return true;
+              })
+              .sort((a, b) => {
+                if (sortBy === 'name') {
+                  return a.name.localeCompare(b.name);
+                }
+                const fa = getProjectFinancialSummary(a.id);
+                const fb = getProjectFinancialSummary(b.id);
+                if (sortBy === 'revenueDesc') {
+                  return (fb.net || fb.income || 0) - (fa.net || fa.income || 0);
+                }
+                if (sortBy === 'outstandingDesc') {
+                  return (fb.outstanding || 0) - (fa.outstanding || 0);
+                }
+                return 0;
               })
               .map((project) => (
                 <Grid item xs={12} md={6} lg={4} key={project.id}>
@@ -246,6 +334,13 @@ const ProjectManagement = () => {
                           </IconButton>
                           <IconButton
                             size="small"
+                            color="secondary"
+                            onClick={() => openTxDialog(project)}
+                          >
+                            <IconCurrencyDollar size={16} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
                             color="error"
                             onClick={() => handleDeleteProject(project.id)}
                           >
@@ -268,6 +363,13 @@ const ProjectManagement = () => {
                           variant="outlined"
                           sx={{ textTransform: 'capitalize' }}
                         />
+                        {new Date(project.weddingDate) < new Date() && project.status !== 'completed' && (
+                          <Chip
+                            label="Overdue"
+                            size="small"
+                            color="error"
+                          />
+                        )}
                       </Box>
 
                       {/* Info */}
@@ -278,12 +380,22 @@ const ProjectManagement = () => {
                             {formatDate(project.weddingDate)}
                           </Typography>
                         </Box>
+                      <Box display="flex" flexDirection="column" gap={0.25}>
                         <Box display="flex" alignItems="center" gap={1}>
                           <IconCurrencyDollar size={16} color="gray" />
                           <Typography variant="body2">
                             {formatCurrency(project.spent)} / {formatCurrency(project.budget)}
                           </Typography>
                         </Box>
+                        <Typography
+                          variant="caption"
+                          color={project.spent > project.budget ? 'error.main' : 'text.secondary'}
+                        >
+                          {project.spent > project.budget
+                            ? `Over budget by ${formatCurrency(project.spent - project.budget)}`
+                            : `Remaining budget ${formatCurrency(project.budget - project.spent)}`}
+                        </Typography>
+                      </Box>
                         <Box display="flex" alignItems="center" gap={1}>
                           <IconChecklist size={16} color="gray" />
                           <Typography variant="body2">
@@ -291,6 +403,26 @@ const ProjectManagement = () => {
                           </Typography>
                         </Box>
                       </Box>
+
+                      {/* Financial Snapshot */}
+                      {(() => {
+                        const financial = getProjectFinancialSummary(project.id);
+                        if (!financial.income && !financial.expense && !financial.outstanding) {
+                          return null;
+                        }
+                        return (
+                          <Box mt={2} mb={1.5}>
+                            <Typography variant="caption" color="text.secondary">
+                              Financial: {formatCurrency(financial.income)} in / {formatCurrency(financial.expense)} out
+                            </Typography>
+                            {financial.outstanding > 0 && (
+                              <Typography variant="caption" color="warning.main" display="block">
+                                Outstanding: {formatCurrency(financial.outstanding)}
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })()}
 
                       {/* Progress */}
                       <Box>
@@ -406,11 +538,187 @@ const ProjectManagement = () => {
                 />
               </Grid>
             </Grid>
+
+            {selectedProject && (
+              <>
+                <Divider sx={{ my: 3 }} />
+                {(() => {
+                  const financial = getProjectFinancialSummary(selectedProject.id);
+                  const txs = getTransactionsByProject(selectedProject.id) || [];
+
+                  return (
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                        Financial Overview
+                      </Typography>
+                      <Grid container spacing={2} mb={2}>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Card>
+                            <CardContent>
+                              <Typography variant="caption" color="text.secondary">
+                                Total Income
+                              </Typography>
+                              <Typography variant="h6" fontWeight={700}>
+                                {formatCurrency(financial.income)}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Card>
+                            <CardContent>
+                              <Typography variant="caption" color="text.secondary">
+                                Total Expense
+                              </Typography>
+                              <Typography variant="h6" fontWeight={700}>
+                                {formatCurrency(financial.expense)}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Card>
+                            <CardContent>
+                              <Typography variant="caption" color="text.secondary">
+                                Net Revenue
+                              </Typography>
+                              <Typography variant="h6" fontWeight={700}>
+                                {formatCurrency(financial.net)}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Card>
+                            <CardContent>
+                              <Typography variant="caption" color="text.secondary">
+                                Outstanding (Pending)
+                              </Typography>
+                              <Typography
+                                variant="h6"
+                                fontWeight={700}
+                                color={financial.outstanding > 0 ? 'warning.main' : 'text.primary'}
+                              >
+                                {formatCurrency(financial.outstanding)}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      </Grid>
+
+                      <Typography variant="subtitle2" gutterBottom>
+                        Recent Transactions
+                      </Typography>
+                      {txs.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                          No transactions for this project yet.
+                        </Typography>
+                      ) : (
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Description</TableCell>
+                                <TableCell align="right">Amount</TableCell>
+                                <TableCell>Status</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {txs
+                                .slice()
+                                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                                .slice(0, 5)
+                                .map((tx) => (
+                                  <TableRow key={tx.id}>
+                                    <TableCell>
+                                      {tx.date ? new Date(tx.date).toLocaleDateString() : '-'}
+                                    </TableCell>
+                                    <TableCell>{tx.description}</TableCell>
+                                    <TableCell align="right">
+                                      <Typography
+                                        variant="body2"
+                                        color={(tx.amount || 0) >= 0 ? 'success.main' : 'error.main'}
+                                        fontWeight={600}
+                                      >
+                                        {formatCurrency(Math.abs(tx.amount || 0))}
+                                      </Typography>
+                                    </TableCell>
+                                    <TableCell>{tx.status}</TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      )}
+                    </Box>
+                  );
+                })()}
+              </>
+            )}
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 3 }}>
             <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
             <Button variant="contained">
               {selectedProject ? 'Update' : 'Add'} Project
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Project Transaction Dialog */}
+        <Dialog open={txDialogOpen} onClose={closeTxDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {txProject ? `Add Transaction - ${txProject.name}` : 'Add Transaction'}
+          </DialogTitle>
+          <DialogContent>
+            <Box display="flex" flexDirection="column" gap={2} mt={1}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Type</InputLabel>
+                <Select
+                  label="Type"
+                  value={txForm.type}
+                  onChange={(e) => handleTxFormChange('type', e.target.value)}
+                >
+                  <MenuItem value="income">Income</MenuItem>
+                  <MenuItem value="expense">Expense</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                size="small"
+                label="Amount"
+                type="number"
+                value={txForm.amount}
+                onChange={(e) => handleTxFormChange('amount', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                size="small"
+                label="Description"
+                value={txForm.description}
+                onChange={(e) => handleTxFormChange('description', e.target.value)}
+              />
+              <FormControl fullWidth size="small">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  label="Status"
+                  value={txForm.status}
+                  onChange={(e) => handleTxFormChange('status', e.target.value)}
+                >
+                  <MenuItem value="completed">Completed</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button onClick={closeTxDialog}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveTransaction}
+              disabled={!txForm.amount || !Number(txForm.amount)}
+            >
+              Save Transaction
             </Button>
           </DialogActions>
         </Dialog>
