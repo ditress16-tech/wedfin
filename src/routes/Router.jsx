@@ -44,6 +44,11 @@ const TeamManagement = Loadable(lazy(() => import('../views/dashboard/vendor/Tea
 const UserProfile = Loadable(lazy(() => import('../views/dashboard/vendor/UserProfile')));
 const AccountSettings = Loadable(lazy(() => import('../views/dashboard/vendor/AccountSettings')));
 
+/* ****NEW: Financial Management System***** */
+const FinancialDashboard = Loadable(lazy(() => import('../views/dashboard/vendor/FinancialDashboard')));
+const ProjectManagement = Loadable(lazy(() => import('../views/dashboard/vendor/ProjectManagement')));
+const ClientManagement = Loadable(lazy(() => import('../views/dashboard/vendor/ClientManagement')));
+
 const Router = [
   {
     path: '/',
@@ -91,6 +96,11 @@ const Router = [
       { path: '/dashboards/vendor/team-management', element: <TeamManagement /> },
       { path: '/dashboards/vendor/user-profile', element: <UserProfile /> },
       { path: '/dashboards/vendor/account-settings', element: <AccountSettings /> },
+      
+      // NEW: Financial Management System
+      { path: '/dashboards/vendor/financial', element: <FinancialDashboard /> },
+      { path: '/dashboards/vendor/projects', element: <ProjectManagement /> },
+      { path: '/dashboards/vendor/clients', element: <ClientManagement /> },
       
       { path: '*', element: <Navigate to="/" /> },
     ],

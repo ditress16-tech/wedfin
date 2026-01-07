@@ -22,10 +22,10 @@ import {
   IconMapPin,
   IconUsers,
   IconPlus,
-  Edit as EditIcon,
-  Visibility as EyeIcon,
-  AccessTime as ClockIcon
-} from '@mui/icons-material';
+  IconEdit,
+  IconEye,
+  IconClock
+} from '@tabler/icons-react';
 import DashboardCard from '../../../ui/shared/DashboardCard';
 
 const VenueCalendar = () => {
@@ -196,7 +196,7 @@ const VenueCalendar = () => {
                             </Typography>
                           </Box>
                           <Box display="flex" alignItems="center" gap={0.5}>
-                            <ClockIcon sx={{ fontSize: 14 }} />
+                            <IconClock size={14} />
                             <Typography variant="body2" color="text.secondary">
                               {getDaysUntil(booking.date)} days
                             </Typography>
@@ -235,14 +235,14 @@ const VenueCalendar = () => {
                           color="primary"
                           onClick={() => handleViewBooking(booking.id)}
                         >
-                          <EyeIcon sx={{ fontSize: 16 }} />
+                          <IconEye size={16} />
                         </IconButton>
                         <IconButton
                           size="small"
                           color="primary"
                           onClick={() => handleEditBooking(booking.id)}
                         >
-                          <EditIcon sx={{ fontSize: 16 }} />
+                          <IconEdit size={16} />
                         </IconButton>
                       </Box>
                     </Box>

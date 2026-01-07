@@ -23,7 +23,10 @@ import {
   IconUsersGroup,
   IconUserCircle,
   IconSettings,
-  IconMessageCircle
+  IconMessageCircle,
+  IconWallet,
+  IconFolders,
+  IconUserCheck
 } from '@tabler/icons-react';
 
 // Photography Vendor Menu
