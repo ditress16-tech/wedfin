@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Box,
@@ -8,10 +8,6 @@ import {
   Button,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   MenuItem,
   List,
@@ -32,7 +28,10 @@ import {
 } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
+import FormDialog from '../../../components/vendor/FormDialog';
+import { useFormDialog } from '../../../hooks/useFormDialog';
 import { useAuth } from '../../../context/AuthContext';
+import { getStatusColor } from '../../../utils/formatters';
 
 const ServicePackages = () => {
   const { getVendorCategory } = useAuth();
@@ -281,17 +280,14 @@ const ServicePackages = () => {
   };
 
   const [packages, setPackages] = useState([]);
-
-  useEffect(() => {
-    // Load packages based on vendor category
-    if (vendorCategory && packagesByCategory[vendorCategory]) {
-      setPackages(packagesByCategory[vendorCategory]);
-    }
-  }, [vendorCategory]);
-
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingPackage, setEditingPackage] = useState(null);
-  const [formData, setFormData] = useState({
+  const { 
+    open: openDialog, 
+    editing: editingPackage, 
+    formData, 
+    handleOpen: handleOpenDialog, 
+    handleClose: handleCloseDialog, 
+    handleChange 
+  } = useFormDialog({
     name: '',
     category: 'photography',
     price: '',
@@ -302,41 +298,12 @@ const ServicePackages = () => {
     status: 'active'
   });
 
-  const handleOpenDialog = (pkg = null) => {
-    if (pkg) {
-      setEditingPackage(pkg);
-      setFormData({
-        ...pkg,
-        features: pkg.features.join('\n')
-      });
-    } else {
-      setEditingPackage(null);
-      setFormData({
-        name: '',
-        category: vendorCategory || 'photography',
-        price: '',
-        duration: '',
-        description: '',
-        features: '',
-        isPopular: false,
-        status: 'active'
-      });
+  useEffect(() => {
+    // Load packages based on vendor category
+    if (vendorCategory && packagesByCategory[vendorCategory]) {
+      setPackages(packagesByCategory[vendorCategory]);
     }
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setEditingPackage(null);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, checked, type } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
-  };
+  }, [vendorCategory]);
 
   const handleSave = () => {
     const featuresArray = formData.features.split('\n').filter(f => f.trim() !== '');
@@ -369,8 +336,24 @@ const ServicePackages = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    return status === 'active' ? 'success' : 'default';
+  const handleOpenWithData = (pkg = null) => {
+    if (pkg) {
+      handleOpenDialog({
+        ...pkg,
+        features: pkg.features.join('\n')
+      });
+    } else {
+      handleOpenDialog({
+        name: '',
+        category: vendorCategory || 'photography',
+        price: '',
+        duration: '',
+        description: '',
+        features: '',
+        isPopular: false,
+        status: 'active'
+      });
+    }
   };
 
   return (
@@ -453,13 +436,7 @@ const ServicePackages = () => {
                         {pkg.features.map((feature, index) => (
                           <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
                             <IconCheck size={16} color="green" style={{ marginRight: 8 }} />
-                            <ListItemText
-                              primary={feature}
-                              primaryTypographyProps={{
-                                variant: 'body2',
-                                color: 'text.secondary'
-                              }}
-                            />
+                            <ListItemText primary={feature} />
                           </ListItem>
                         ))}
                       </List>
@@ -484,7 +461,7 @@ const ServicePackages = () => {
                           size="small"
                           fullWidth
                           startIcon={<IconEdit size={16} />}
-                          onClick={() => handleOpenDialog(pkg)}
+                          onClick={() => handleOpenWithData(pkg)}
                         >
                           Edit
                         </Button>
@@ -514,7 +491,7 @@ const ServicePackages = () => {
                 <Button
                   variant="contained"
                   startIcon={<IconPlus size={18} />}
-                  onClick={() => handleOpenDialog()}
+                  onClick={() => handleOpenWithData()}
                 >
                   Add Package
                 </Button>
@@ -524,148 +501,132 @@ const ServicePackages = () => {
         </DashboardCard>
 
         {/* Add/Edit Package Dialog */}
-        <Dialog 
-          open={openDialog} 
+        <FormDialog
+          open={openDialog}
           onClose={handleCloseDialog}
-          maxWidth="md"
-          fullWidth
+          title={editingPackage ? 'Edit Package' : 'Add New Package'}
+          onSave={handleSave}
+          saveLabel={editingPackage ? 'Update Package' : 'Create Package'}
+          saveDisabled={!formData.name || !formData.price || !formData.duration}
         >
-          <DialogTitle>
-            {editingPackage ? 'Edit Package' : 'Add New Package'}
-          </DialogTitle>
-          <DialogContent>
-            <Box display="flex" flexDirection="column" gap={2} mt={1}>
+          <TextField
+            label="Package Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            fullWidth
+            required
+            placeholder="e.g., Premium Wedding Package"
+          />
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
-                label="Package Name"
-                name="name"
-                value={formData.name}
+                label="Category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                select
+                fullWidth
+                required
+              >
+                <MenuItem value="photography">Photography</MenuItem>
+                <MenuItem value="makeup">Makeup</MenuItem>
+                <MenuItem value="catering">Catering</MenuItem>
+                <MenuItem value="venue">Venue</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                select
+                fullWidth
+                required
+              >
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                label="Price"
+                name="price"
+                type="number"
+                value={formData.price}
                 onChange={handleChange}
                 fullWidth
                 required
-                placeholder="e.g., Premium Wedding Package"
+                placeholder="e.g., 2500"
+                slotProps={{
+                  input: {
+                    startAdornment: <IconCurrencyDollar size={20} style={{ marginRight: 8 }} />
+                  }
+                }}
               />
-
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    label="Category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    select
-                    fullWidth
-                    required
-                  >
-                    <MenuItem value="photography">Photography</MenuItem>
-                    <MenuItem value="makeup">Makeup</MenuItem>
-                    <MenuItem value="catering">Catering</MenuItem>
-                    <MenuItem value="venue">Venue</MenuItem>
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    label="Status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    select
-                    fullWidth
-                    required
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    label="Price"
-                    name="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    placeholder="e.g., 2500"
-                    InputProps={{
-                      startAdornment: <IconCurrencyDollar size={20} style={{ marginRight: 8 }} />
-                    }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    label="Duration"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    placeholder="e.g., 8 hours"
-                  />
-                </Grid>
-              </Grid>
-
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
-                label="Description"
-                name="description"
-                value={formData.description}
+                label="Duration"
+                name="duration"
+                value={formData.duration}
                 onChange={handleChange}
-                multiline
-                rows={2}
                 fullWidth
                 required
-                placeholder="Brief description of the package"
+                placeholder="e.g., 8 hours"
               />
+            </Grid>
+          </Grid>
 
-              <TextField
-                label="Features (one per line)"
-                name="features"
-                value={formData.features}
+          <TextField
+            label="Description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            multiline
+            rows={2}
+            fullWidth
+            required
+            placeholder="Brief description of the package"
+          />
+
+          <TextField
+            label="Features (one per line)"
+            name="features"
+            value={formData.features}
+            onChange={handleChange}
+            multiline
+            rows={6}
+            fullWidth
+            required
+            placeholder="8 hours of coverage&#10;500+ edited photos&#10;Online gallery&#10;2 photographers"
+            helperText="Enter each feature on a new line"
+          />
+
+          <Box>
+            <label>
+              <input
+                type="checkbox"
+                name="isPopular"
+                checked={formData.isPopular}
                 onChange={handleChange}
-                multiline
-                rows={6}
-                fullWidth
-                required
-                placeholder="8 hours of coverage&#10;500+ edited photos&#10;Online gallery&#10;2 photographers"
-                helperText="Enter each feature on a new line"
+                style={{ marginRight: 8 }}
               />
+              Mark as "Most Popular"
+            </label>
+          </Box>
 
-              <Box>
-                <label>
-                  <input
-                    type="checkbox"
-                    name="isPopular"
-                    checked={formData.isPopular}
-                    onChange={handleChange}
-                    style={{ marginRight: 8 }}
-                  />
-                  Mark as "Most Popular"
-                </label>
-              </Box>
-
-              <Alert severity="info" sx={{ mt: 1 }}>
-                <Typography variant="body2">
-                  Tip: Popular packages are highlighted and shown first to clients
-                </Typography>
-              </Alert>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button onClick={handleCloseDialog} startIcon={<IconX size={18} />}>
-              Cancel
-            </Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSave}
-              startIcon={<IconCheck size={18} />}
-              disabled={!formData.name || !formData.price || !formData.duration}
-            >
-              {editingPackage ? 'Update' : 'Create'} Package
-            </Button>
-          </DialogActions>
-        </Dialog>
+          <Alert severity="info" sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Tip: Popular packages are highlighted and shown first to clients
+            </Typography>
+          </Alert>
+        </FormDialog>
       </Box>
     </PageContainer>
   );

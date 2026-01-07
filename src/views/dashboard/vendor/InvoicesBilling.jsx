@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Box,
@@ -12,15 +12,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Stack,
   Divider
 } from '@mui/material';
@@ -29,13 +26,12 @@ import {
   IconEye,
   IconDownload,
   IconSend,
-  IconFileInvoice,
-  IconCurrencyDollar,
-  IconCalendar
+  IconFileInvoice
 } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
 import { useAuth } from '../../../context/AuthContext';
+import { formatDate, formatCurrency, getStatusColor } from '../../../utils/formatters';
 
 const InvoicesBilling = () => {
   const { getVendorCategory } = useAuth();
@@ -225,33 +221,6 @@ const InvoicesBilling = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  const getStatusColor = (status) => {
-    const colors = {
-      paid: 'success',
-      pending: 'warning',
-      overdue: 'error',
-      draft: 'default'
-    };
-    return colors[status] || 'default';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
     setOpenDialog(true);
@@ -277,6 +246,37 @@ const InvoicesBilling = () => {
   };
 
   const stats = getTotalStats();
+
+  const statsCards = [
+    {
+      title: 'Total Invoiced',
+      value: formatCurrency(stats.total),
+      icon: IconReceipt,
+      color: 'primary',
+      bgColor: 'primary.light'
+    },
+    {
+      title: 'Paid',
+      value: formatCurrency(stats.paid),
+      icon: IconCurrencyDollar,
+      color: 'success',
+      bgColor: 'success.light'
+    },
+    {
+      title: 'Pending',
+      value: formatCurrency(stats.pending),
+      icon: IconCalendar,
+      color: 'warning',
+      bgColor: 'warning.light'
+    },
+    {
+      title: 'Overdue',
+      value: formatCurrency(stats.overdue),
+      icon: IconFileInvoice,
+      color: 'error',
+      bgColor: 'error.light'
+    }
+  ];
 
   return (
     <PageContainer title="Invoices & Billing" description="Manage invoices and billing">

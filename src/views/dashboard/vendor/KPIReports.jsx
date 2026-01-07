@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Box,
@@ -12,17 +12,16 @@ import {
   Chip
 } from '@mui/material';
 import {
-  IconTrendingUp,
-  IconTrendingDown,
-  IconUsers,
+  IconDownload,
+  IconFileAnalytics,
   IconCurrencyDollar,
   IconCalendar,
-  IconStar,
-  IconDownload,
-  IconFileAnalytics
+  IconUsers,
+  IconStar
 } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
+import KPICard from '../../../components/vendor/KPICard';
 import { useAuth } from '../../../context/AuthContext';
 import { useVendor } from '../../../context/VendorContext';
 
@@ -183,71 +182,11 @@ const KPIReports = () => {
 
         {/* KPI Cards */}
         <Grid container spacing={3} mb={3}>
-          {kpiData.map((kpi, index) => {
-            const Icon = kpi.icon;
-            const progress = (kpi.current / kpi.target) * 100;
-            
-            return (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
-                <Card>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Box
-                        sx={{
-                          bgcolor: `${kpi.color}.light`,
-                          p: 1,
-                          borderRadius: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Icon size={24} color={kpi.color} />
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        {kpi.trend === 'up' ? (
-                          <IconTrendingUp size={16} color="green" />
-                        ) : (
-                          <IconTrendingDown size={16} color="red" />
-                        )}
-                        <Typography
-                          variant="caption"
-                          color={kpi.trend === 'up' ? 'success.main' : 'error.main'}
-                          fontWeight="600"
-                        >
-                          {kpi.change}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    <Typography variant="h4" fontWeight="700" mb={0.5}>
-                      {kpi.value}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" mb={2}>
-                      {kpi.title}
-                    </Typography>
-                    
-                    <Box>
-                      <Box display="flex" justifyContent="space-between" mb={0.5}>
-                        <Typography variant="caption" color="text.secondary">
-                          Progress
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {Math.round(progress)}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progress}
-                        color={kpi.color}
-                        sx={{ height: 6, borderRadius: 3 }}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
+          {kpiData.map((kpi, index) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+              <KPICard {...kpi} />
+            </Grid>
+          ))}
         </Grid>
 
         {/* Performance Metrics */}

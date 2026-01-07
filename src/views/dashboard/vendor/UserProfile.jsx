@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Box,
@@ -14,7 +14,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  Stack
 } from '@mui/material';
 import {
   IconCamera,
@@ -22,16 +23,19 @@ import {
   IconPhone,
   IconMapPin,
   IconBriefcase,
-  IconCalendar,
   IconEdit,
   IconCheck,
   IconX,
-  IconStar
+  IconStar,
+  IconWorld,
+  IconTrophy
 } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
 import { useAuth } from '../../../context/AuthContext';
 import { useVendor } from '../../../context/VendorContext';
+import profileBg from '../../../assets/images/backgrounds/profilebg.jpg';
+import user1 from '../../../assets/images/profile/user-1.jpg';
 
 const UserProfile = () => {
   const { getVendorCategory } = useAuth();
@@ -50,7 +54,8 @@ const UserProfile = () => {
       experience: '10+ years',
       specialization: 'Wedding Photography',
       rating: 4.8,
-      completedProjects: 245
+      completedProjects: 245,
+      avatar: user1
     },
     makeup: {
       name: 'Glamour Beauty Studio',
@@ -62,7 +67,8 @@ const UserProfile = () => {
       experience: '10+ years',
       specialization: 'Bridal Makeup',
       rating: 4.9,
-      completedProjects: 180
+      completedProjects: 180,
+      avatar: user1
     },
     catering: {
       name: 'Royal Feast Catering',
@@ -74,7 +80,8 @@ const UserProfile = () => {
       experience: '15+ years',
       specialization: 'Wedding Catering',
       rating: 4.7,
-      completedProjects: 150
+      completedProjects: 150,
+      avatar: user1
     },
     venue: {
       name: 'Paradise Garden Venue',
@@ -86,7 +93,8 @@ const UserProfile = () => {
       experience: '12+ years',
       specialization: 'Wedding Venue',
       rating: 4.6,
-      completedProjects: 120
+      completedProjects: 120,
+      avatar: user1
     }
   };
 
@@ -134,30 +142,47 @@ const UserProfile = () => {
   ];
 
   const achievements = [
-    { title: 'Top Rated Vendor', year: '2024' },
-    { title: 'Best Wedding Photographer', year: '2023' },
-    { title: '100+ Happy Clients', year: '2023' },
-    { title: 'Featured in Wedding Magazine', year: '2022' }
+    { title: 'Top Rated Vendor', year: '2024', icon: IconTrophy },
+    { title: 'Best Wedding Photographer', year: '2023', icon: IconStar },
+    { title: '100+ Happy Clients', year: '2023', icon: IconStar },
+    { title: 'Featured in Wedding Magazine', year: '2022', icon: IconStar }
   ];
 
   return (
     <PageContainer title="User Profile" description="Manage your profile">
       <Box>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card>
-              <CardContent sx={{ textAlign: 'center' }}>
+          {/* Left Column - Profile Card */}
+          <Grid item xs={12} md={4}>
+            {/* Profile Header with Background */}
+            <Card
+              sx={{
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Background Image */}
+              <Box
+                sx={{
+                  height: 200,
+                  background: `linear-gradient(135deg, rgba(93, 135, 255, 0.8) 0%, rgba(93, 135, 255, 0.6) 100%), url(${profileBg})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              />
+              
+              {/* Profile Content */}
+              <CardContent sx={{ textAlign: 'center', mt: -8 }}>
                 <Box position="relative" display="inline-block" mb={2}>
                   <Avatar
+                    src={profileData.avatar}
                     sx={{
                       width: 120,
                       height: 120,
-                      bgcolor: 'primary.main',
-                      fontSize: '3rem'
+                      border: '4px solid white',
+                      boxShadow: 3
                     }}
-                  >
-                    {profileData.name.charAt(0)}
-                  </Avatar>
+                  />
                   <IconButton
                     sx={{
                       position: 'absolute',
@@ -180,7 +205,7 @@ const UserProfile = () => {
                   {profileData.specialization}
                 </Typography>
 
-                <Box display="flex" justifyContent="center" gap={1} mb={3}>
+                <Stack direction="row" spacing={1} justifyContent="center" mb={3}>
                   <Chip
                     icon={<IconStar size={16} />}
                     label={`${profileData.rating} Rating`}
@@ -192,7 +217,7 @@ const UserProfile = () => {
                     color="success"
                     size="small"
                   />
-                </Box>
+                </Stack>
 
                 <Divider sx={{ my: 2 }} />
 
@@ -201,74 +226,74 @@ const UserProfile = () => {
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <IconMail size={20} />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={profileData.email}
-                      primaryTypographyProps={{ variant: 'body2' }}
-                    />
+                    <ListItemText primary={profileData.email} />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <IconPhone size={20} />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={profileData.phone}
-                      primaryTypographyProps={{ variant: 'body2' }}
-                    />
+                    <ListItemText primary={profileData.phone} />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <IconMapPin size={20} />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={profileData.location}
-                      primaryTypographyProps={{ variant: 'body2' }}
-                    />
+                    <ListItemText primary={profileData.location} />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <IconWorld size={20} />
+                    </ListItemIcon>
+                    <ListItemText primary={profileData.website} />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <IconBriefcase size={20} />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={profileData.experience}
-                      primaryTypographyProps={{ variant: 'body2' }}
-                    />
+                    <ListItemText primary={profileData.experience} />
                   </ListItem>
                 </List>
               </CardContent>
             </Card>
 
+            {/* Achievements Card */}
             <Card sx={{ mt: 3 }}>
               <CardContent>
                 <Typography variant="h6" fontWeight="600" mb={2}>
                   Achievements
                 </Typography>
                 <List dense>
-                  {achievements.map((achievement, index) => (
-                    <ListItem key={index} sx={{ px: 0 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <IconStar size={20} color="orange" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={achievement.title}
-                        secondary={achievement.year}
-                      />
-                    </ListItem>
-                  ))}
+                  {achievements.map((achievement, index) => {
+                    const Icon = achievement.icon;
+                    return (
+                      <ListItem key={index} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <Icon size={20} color="orange" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={achievement.title}
+                          secondary={achievement.year}
+                        />
+                      </ListItem>
+                    );
+                  })}
                 </List>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 8 }}>
+          {/* Right Column - Stats & Profile Info */}
+          <Grid item xs={12} md={8}>
+            {/* Stats Cards */}
             <Grid container spacing={3} mb={3}>
               {stats.map((stat, index) => (
-                <Grid size={{ xs: 6, md: 3 }} key={index}>
+                <Grid item xs={6} md={3} key={index}>
                   <Card>
-                    <CardContent>
-                      <Typography variant="h4" fontWeight="700" mb={0.5}>
+                    <CardContent sx={{ textAlign: 'center' }}>
+                      <Typography variant="h3" fontWeight="700" mb={0.5} color="primary.main">
                         {stat.value}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="caption" color="text.secondary">
                         {stat.label}
                       </Typography>
                     </CardContent>
@@ -277,6 +302,7 @@ const UserProfile = () => {
               ))}
             </Grid>
 
+            {/* Profile Information */}
             <DashboardCard
               title="Profile Information"
               action={
@@ -310,7 +336,7 @@ const UserProfile = () => {
             >
               <Box>
                 <Grid container spacing={3}>
-                  <Grid size={12}>
+                  <Grid item xs={12}>
                     <TextField
                       label="Business Name"
                       name="name"
@@ -320,7 +346,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Email"
                       name="email"
@@ -331,7 +357,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Phone"
                       name="phone"
@@ -341,7 +367,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Location"
                       name="location"
@@ -351,7 +377,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Website"
                       name="website"
@@ -361,7 +387,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Specialization"
                       name="specialization"
@@ -371,7 +397,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Experience"
                       name="experience"
@@ -381,7 +407,7 @@ const UserProfile = () => {
                       disabled={!isEditing}
                     />
                   </Grid>
-                  <Grid size={12}>
+                  <Grid item xs={12}>
                     <TextField
                       label="Bio"
                       name="bio"

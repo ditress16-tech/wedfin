@@ -20,7 +20,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Stack
 } from '@mui/material';
 import {
   IconPlus,
@@ -29,15 +30,24 @@ import {
   IconMail,
   IconPhone,
   IconUserCheck,
-  IconUserX
+  IconUserX,
+  IconUsers
 } from '@tabler/icons-react';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from 'src/ui/shared/DashboardCard';
 import { useAuth } from '../../../context/AuthContext';
+import user1 from '../../../assets/images/profile/user-1.jpg';
+import user2 from '../../../assets/images/profile/user-2.jpg';
+import user3 from '../../../assets/images/profile/user-3.jpg';
+import user4 from '../../../assets/images/profile/user-4.jpg';
+import user5 from '../../../assets/images/profile/user-5.jpg';
+import user6 from '../../../assets/images/profile/user-6.jpg';
 
 const TeamManagement = () => {
   const { getVendorCategory } = useAuth();
   const vendorCategory = getVendorCategory();
+
+  const userImages = [user1, user2, user3, user4, user5, user6];
 
   // Roles by category
   const rolesByCategory = {
@@ -84,7 +94,7 @@ const TeamManagement = () => {
         role: 'Lead Photographer',
         status: 'active',
         joinDate: '2023-01-15',
-        avatar: 'JS'
+        avatar: user1
       },
       {
         id: 2,
@@ -94,7 +104,7 @@ const TeamManagement = () => {
         role: 'Assistant Photographer',
         status: 'active',
         joinDate: '2023-03-20',
-        avatar: 'EW'
+        avatar: user2
       },
       {
         id: 3,
@@ -104,7 +114,7 @@ const TeamManagement = () => {
         role: 'Video Editor',
         status: 'active',
         joinDate: '2023-06-10',
-        avatar: 'MB'
+        avatar: user3
       }
     ],
     makeup: [
@@ -116,7 +126,7 @@ const TeamManagement = () => {
         role: 'Lead Makeup Artist',
         status: 'active',
         joinDate: '2023-01-15',
-        avatar: 'SJ'
+        avatar: user4
       },
       {
         id: 2,
@@ -126,7 +136,7 @@ const TeamManagement = () => {
         role: 'Assistant Makeup Artist',
         status: 'active',
         joinDate: '2023-03-20',
-        avatar: 'LC'
+        avatar: user5
       },
       {
         id: 3,
@@ -136,7 +146,7 @@ const TeamManagement = () => {
         role: 'Hair Stylist',
         status: 'active',
         joinDate: '2023-06-10',
-        avatar: 'MG'
+        avatar: user6
       }
     ],
     catering: [
@@ -148,7 +158,7 @@ const TeamManagement = () => {
         role: 'Head Chef',
         status: 'active',
         joinDate: '2023-01-15',
-        avatar: 'CR'
+        avatar: user1
       },
       {
         id: 2,
@@ -158,7 +168,7 @@ const TeamManagement = () => {
         role: 'Sous Chef',
         status: 'active',
         joinDate: '2023-03-20',
-        avatar: 'DL'
+        avatar: user2
       },
       {
         id: 3,
@@ -168,7 +178,7 @@ const TeamManagement = () => {
         role: 'Service Manager',
         status: 'active',
         joinDate: '2023-06-10',
-        avatar: 'AM'
+        avatar: user3
       }
     ],
     venue: [
@@ -180,7 +190,7 @@ const TeamManagement = () => {
         role: 'Venue Manager',
         status: 'active',
         joinDate: '2023-01-15',
-        avatar: 'JW'
+        avatar: user4
       },
       {
         id: 2,
@@ -190,7 +200,7 @@ const TeamManagement = () => {
         role: 'Event Coordinator',
         status: 'active',
         joinDate: '2023-03-20',
-        avatar: 'ED'
+        avatar: user5
       },
       {
         id: 3,
@@ -200,7 +210,7 @@ const TeamManagement = () => {
         role: 'Maintenance Staff',
         status: 'active',
         joinDate: '2023-06-10',
-        avatar: 'TA'
+        avatar: user6
       }
     ]
   };
@@ -267,7 +277,7 @@ const TeamManagement = () => {
         ...formData,
         id: Math.max(...teamMembers.map(m => m.id), 0) + 1,
         joinDate: new Date().toISOString().split('T')[0],
-        avatar: formData.name.split(' ').map(n => n[0]).join('').toUpperCase()
+        avatar: userImages[Math.floor(Math.random() * userImages.length)]
       };
       setTeamMembers([...teamMembers, newMember]);
     }
@@ -298,45 +308,68 @@ const TeamManagement = () => {
   return (
     <PageContainer title="Team Management" description="Manage your team">
       <Box>
+        {/* Stats Cards */}
         <Grid container spacing={3} mb={3}>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Card>
               <CardContent>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Total Members
-                </Typography>
-                <Typography variant="h3" fontWeight="600">
-                  {teamMembers.length}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar sx={{ bgcolor: 'primary.light', width: 56, height: 56 }}>
+                    <IconUsers size={28} color="primary" />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" fontWeight="600">
+                      {teamMembers.length}
+                    </Typography>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Total Members
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Card sx={{ bgcolor: 'success.light' }}>
               <CardContent>
-                <Typography variant="subtitle2" color="success.dark" gutterBottom>
-                  Active Members
-                </Typography>
-                <Typography variant="h3" fontWeight="600" color="success.dark">
-                  {activeMembers}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar sx={{ bgcolor: 'success.main', width: 56, height: 56 }}>
+                    <IconUserCheck size={28} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" fontWeight="600" color="success.dark">
+                      {activeMembers}
+                    </Typography>
+                    <Typography variant="subtitle2" color="success.dark">
+                      Active Members
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid item xs={12} sm={4}>
             <Card sx={{ bgcolor: 'grey.200' }}>
               <CardContent>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Inactive Members
-                </Typography>
-                <Typography variant="h3" fontWeight="600">
-                  {inactiveMembers}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar sx={{ bgcolor: 'grey.500', width: 56, height: 56 }}>
+                    <IconUserX size={28} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h3" fontWeight="600">
+                      {inactiveMembers}
+                    </Typography>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Inactive Members
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
+        {/* Team Members Table */}
         <DashboardCard
           title="Team Members"
           subtitle="Manage your team members and their roles"
@@ -367,9 +400,7 @@ const TeamManagement = () => {
                   <TableRow key={member.id} hover>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          {member.avatar}
-                        </Avatar>
+                        <Avatar src={member.avatar} sx={{ width: 40, height: 40 }} />
                         <Typography variant="subtitle2" fontWeight="600">
                           {member.name}
                         </Typography>
@@ -387,7 +418,9 @@ const TeamManagement = () => {
                         </Box>
                       </Box>
                     </TableCell>
-                    <TableCell>{member.role}</TableCell>
+                    <TableCell>
+                      <Chip label={member.role} size="small" variant="outlined" />
+                    </TableCell>
                     <TableCell>
                       {new Date(member.joinDate).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -404,7 +437,7 @@ const TeamManagement = () => {
                       />
                     </TableCell>
                     <TableCell align="center">
-                      <Box display="flex" gap={1} justifyContent="center">
+                      <Stack direction="row" spacing={1} justifyContent="center">
                         <IconButton
                           size="small"
                           color="primary"
@@ -433,7 +466,7 @@ const TeamManagement = () => {
                         >
                           <IconTrash size={18} />
                         </IconButton>
-                      </Box>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -442,6 +475,7 @@ const TeamManagement = () => {
           </TableContainer>
         </DashboardCard>
 
+        {/* Add/Edit Dialog */}
         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>
             {editingMember ? 'Edit Team Member' : 'Add Team Member'}

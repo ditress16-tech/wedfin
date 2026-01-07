@@ -1,70 +1,175 @@
-# Getting Started with Create React App
+# Wedding Financial Management System 💍💰
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistem manajemen keuangan wedding yang komprehensif untuk vendor dengan fitur lengkap untuk mengelola keuangan, klien, dan proyek.
 
-## Available Scripts
+## 🎯 Fitur Utama
 
-In the project directory, you can run:
+### 💰 Financial Management
+- **Multi-Account Management**: Bank accounts, debit cards, credit cards, cash, digital wallets
+- **Real-time Balance Tracking**: Monitor semua akun dalam satu dashboard
+- **Budget Planning**: Set dan track budget per kategori
+- **Financial Goals**: Target keuangan dengan progress tracking
+- **Net Worth Calculation**: Total balance - debt
 
-### `npm start`
+### 👥 Client Management
+- **Client Database**: Manajemen data klien lengkap
+- **Lead Tracking**: Track prospek dan konversi
+- **Client Ratings**: Rating dan feedback dari klien
+- **Communication History**: Log komunikasi dengan klien
+- **Revenue per Client**: Track spending history
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 📋 Project Management
+- **Wedding Projects**: Manajemen proyek wedding lengkap
+- **Budget Tracking**: Monitor budget vs actual per project
+- **Task Management**: Track tasks dan progress
+- **Timeline Management**: Wedding date dan milestone tracking
+- **Status Tracking**: Planning, active, completed
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 📊 Vendor Dashboard
+- **Category-Specific**: Photography, Makeup, Catering, Venue
+- **KPI Tracking**: Revenue, projects, client satisfaction
+- **Analytics**: Performance metrics dan trends
+- **Invoices & Billing**: Invoice management system
 
-### `npm test`
+## 🚀 Getting Started
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# Clone repository
+git clone [repository-url]
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Install dependencies
+npm install
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Start development server
+npm run dev
+```
 
-### `npm run eject`
+The app will run at [http://localhost:5173](http://localhost:5173)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Build for Production
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Builds the app for production to the `dist` folder.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Lint Code
 
-## Learn More
+```bash
+npm run lint
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📁 Project Structure
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+src/
+├── views/
+│   └── dashboard/
+│       └── vendor/
+│           ├── FinancialDashboard.jsx    # Financial overview
+│           ├── ProjectManagement.jsx     # Project management
+│           ├── ClientManagement.jsx      # Client CRM
+│           ├── VendorDashboard.jsx       # Main dashboard
+│           ├── InvoicesBilling.jsx       # Invoice system
+│           └── ...
+├── context/
+│   ├── FinancialContext.jsx             # Financial state management
+│   ├── VendorContext.jsx                # Vendor data management
+│   └── AuthContext.jsx                  # Authentication
+├── components/
+│   └── vendor/
+│       ├── StatCard.jsx                 # Reusable stat card
+│       ├── ProjectCard.jsx              # Project card component
+│       └── KPICard.jsx                  # KPI card component
+└── utils/
+    └── formatters.js                    # Utility functions
+```
 
-### Code Splitting
+## 🛠️ Tech Stack
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **React 19** - UI framework
+- **Material-UI (MUI) v7** - Component library
+- **React Router v7** - Routing
+- **Vite** - Build tool
+- **Context API** - State management
+- **Tabler Icons** - Icon library
 
-### Analyzing the Bundle Size
+## 📚 Documentation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- [WEDDING_FINANCIAL_MANAGEMENT.md](./WEDDING_FINANCIAL_MANAGEMENT.md) - Dokumentasi lengkap sistem financial
+- [MULTI_VENDOR_DASHBOARD_FLOW.md](./MULTI_VENDOR_DASHBOARD_FLOW.md) - Flow dan struktur vendor dashboard
+- [REFACTORING_NOTES.md](./REFACTORING_NOTES.md) - Catatan refactoring dan komponen reusable
 
-### Making a Progressive Web App
+## 🎨 Vendor Categories
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Sistem mendukung 4 kategori vendor:
+1. **Photography** - Wedding photography services
+2. **Makeup Artist** - Bridal makeup services
+3. **Catering** - Wedding catering services
+4. **Venue** - Wedding venue rental
 
-### Advanced Configuration
+Setiap kategori memiliki dashboard dan fitur yang disesuaikan dengan kebutuhan bisnis mereka.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🔐 Authentication
 
-### Deployment
+Sistem menggunakan role-based authentication:
+- **Wedding Planner** - Full access ke semua vendor
+- **Vendor** - Access terbatas ke data mereka sendiri
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 📊 Key Features Detail
 
-### `npm run build` fails to minify
+### Financial Dashboard
+- Total balance dari semua akun
+- Net worth calculation (balance - debt)
+- Monthly revenue & profit tracking
+- Multi-account overview (bank, cards, cash, wallets)
+- Budget tracking dengan progress bars
+- Financial goals dengan deadline tracking
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Project Management
+- Grid view dengan filtering
+- Budget vs actual tracking
+- Task completion monitoring
+- Progress bars per project
+- Priority levels (high, medium, low)
+- Status tracking (planning, active, completed)
+
+### Client Management
+- Comprehensive client database
+- Lead to client conversion tracking
+- Client ratings dan feedback
+- Revenue per client
+- Communication history
+- Wedding date tracking
+
+## 🚀 Next Steps
+
+1. **Backend Integration**
+   - Setup API endpoints
+   - Database schema
+   - Real-time sync
+
+2. **Advanced Features**
+   - Transaction management
+   - Reports & analytics
+   - Banking integration
+   - Multi-currency support
+
+3. **Mobile App**
+   - React Native version
+   - Progressive Web App
+
+## 📝 License
+
+This project is private and proprietary.
+
+## 👥 Support
+
+For support, email [your-email] or create an issue in the repository.
